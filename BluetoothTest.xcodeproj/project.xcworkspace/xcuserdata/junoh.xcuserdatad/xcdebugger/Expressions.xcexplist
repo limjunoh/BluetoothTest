@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "TerminalViewController.serialDidReceiveBytes(_:):TerminalViewController.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "tempData &gt;&gt; 24">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
