@@ -121,7 +121,7 @@ extension TerminalViewController: BluetoothSerialDelegate {
         data.getBytes(&tempData, length: 4)
         tempData = UInt32(bigEndian: tempData)
         let mantissa = tempData & 0x00FFFFFF
-        let exponent = -1   // 보류...
+        let exponent = -3   // 보류...
         let actualTemp = Double(mantissa) * pow(10, Double(exponent))
         terminal.text = terminal.text.appending("[" + date.string(from: Date()) + "] temperature : \(actualTemp)" + "\n")
     }
@@ -132,7 +132,7 @@ extension Data {
     struct HexEncodingOptions: OptionSet {
         let rawValue: Int8
         static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
-    }
+}
     
     func hexEncodedString(options: HexEncodingOptions = []) -> String {
         let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
