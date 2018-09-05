@@ -10,7 +10,7 @@ import CoreBluetooth
 
 /// Global serial handler, don't forget to initialize it with init(delgate:)
 var serial: BluetoothSerial!
-
+var bluetoothUUID = BluetoothUUID()
 // Delegate functions
 protocol BluetoothSerialDelegate {
     // ** Required **
@@ -101,10 +101,10 @@ final class BluetoothSerial: NSObject, CBCentralManagerDelegate, CBPeripheralDel
     
     /// UUID of the service to look for.
     var serviceUUID = CBUUID(string: "1809")
-    
+    var HM10_SERVICE_UUID = bluetoothUUID.HM10_Service_CBUUID
     /// UUID of the characteristic to look for.
     var characteristicUUID = CBUUID(string: "2A1C")
-    
+    var HM10_CHARACTERISTIC_UUID = bluetoothUUID.HM10_Characteristic_CBUUID
     /// Whether to write to the HM10 with or without response. Set automatically.
     /// Legit HM10 modules (from JNHuaMao) require 'Write without Response',
     /// while fake modules (e.g. from Bolutek) require 'Write with Response'.
@@ -127,7 +127,7 @@ final class BluetoothSerial: NSObject, CBCentralManagerDelegate, CBPeripheralDel
         
         // retrieve peripherals that are already connected
         // see this stackoverflow question http://stackoverflow.com/questions/13286487
-        let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [serviceUUID])
+        let peripherals = centralManager.retrieveConnectedPeripherals(withServices: [serviceUUID,HM10_SERVICE_UUID])
         for peripheral in peripherals {
             delegate.serialDidDiscoverPeripheral(peripheral, RSSI: nil)
         }
@@ -207,7 +207,7 @@ final class BluetoothSerial: NSObject, CBCentralManagerDelegate, CBPeripheralDel
         // and find out the writeType by looking at characteristic.properties.
         // Only then we're ready for communication
         
-        peripheral.discoverServices([serviceUUID])
+        peripheral.discoverServices([serviceUUID,HM10_SERVICE_UUID])
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
@@ -240,14 +240,14 @@ final class BluetoothSerial: NSObject, CBCentralManagerDelegate, CBPeripheralDel
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         // discover the 0xFFE1 characteristic for all services (though there should only be one)
         for service in peripheral.services! {
-            peripheral.discoverCharacteristics([characteristicUUID], for: service)
+            peripheral.discoverCharacteristics([characteristicUUID,HM10_CHARACTERISTIC_UUID], for: service)
         }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         // check whether the characteristic we're looking for (0xFFE1) is present - just to be sure
         for characteristic in service.characteristics! {
-            if characteristic.uuid == characteristicUUID {
+            if (characteristic.uuid == characteristicUUID) || (characteristic.uuid == HM10_CHARACTERISTIC_UUID) {
                 // subscribe to this value (so we'll get notified when there is serial data for us..)
                 peripheral.setNotifyValue(true, for: characteristic)
                 

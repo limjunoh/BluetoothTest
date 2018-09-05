@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		3E3FAD80212AFE95000582CA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3E3FAD7F212AFE95000582CA /* GoogleService-Info.plist */; };
+		3E5FB036212FD913005F5150 /* mostLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 3E5FB035212FD913005F5150 /* mostLogo.png */; };
+		3E659E4F212FE7F400299542 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E659E4E212FE7F400299542 /* DeviceInfo.swift */; };
+		3E659E51212FE80D00299542 /* SensorValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E659E50212FE80D00299542 /* SensorValues.swift */; };
 		3E8D00BE212B1E0E0074FC82 /* BluetoothUUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8D00BD212B1E0E0074FC82 /* BluetoothUUID.swift */; };
 		C2128F665B4C07B0B3A4B119 /* Pods_BluetoothTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 253A8FC2F87CAED83B7AA9B6 /* Pods_BluetoothTest.framework */; };
 		C83E9A8B211BF75600BA6038 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C83E9A8A211BF75600BA6038 /* AppDelegate.swift */; };
@@ -27,6 +30,9 @@
 /* Begin PBXFileReference section */
 		253A8FC2F87CAED83B7AA9B6 /* Pods_BluetoothTest.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_BluetoothTest.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3E3FAD7F212AFE95000582CA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		3E5FB035212FD913005F5150 /* mostLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mostLogo.png; sourceTree = "<group>"; };
+		3E659E4E212FE7F400299542 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
+		3E659E50212FE80D00299542 /* SensorValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorValues.swift; sourceTree = "<group>"; };
 		3E8D00BD212B1E0E0074FC82 /* BluetoothUUID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothUUID.swift; sourceTree = "<group>"; };
 		3ED9227C212BD20B005CDCE3 /* BluetoothTest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BluetoothTest.entitlements; sourceTree = "<group>"; };
 		5F02D5D3792F07A4A98934DF /* Pods-BluetoothTest.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BluetoothTest.release.xcconfig"; path = "Target Support Files/Pods-BluetoothTest/Pods-BluetoothTest.release.xcconfig"; sourceTree = "<group>"; };
@@ -61,6 +67,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3E5FB034212FD8F2005F5150 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				3E5FB035212FD913005F5150 /* mostLogo.png */,
+			);
+			path = Images;
+			sourceTree = "<group>";
+		};
+		3E659E4D212FE7E600299542 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				3E659E4E212FE7F400299542 /* DeviceInfo.swift */,
+				3E659E50212FE80D00299542 /* SensorValues.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
 		6A3E05A427754ED2A8BF00BB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -99,6 +122,7 @@
 		C83E9A89211BF75600BA6038 /* BluetoothTest */ = {
 			isa = PBXGroup;
 			children = (
+				3E659E4D212FE7E600299542 /* Data */,
 				3ED9227C212BD20B005CDCE3 /* BluetoothTest.entitlements */,
 				C841F505212282940047BE7E /* Asset */,
 				C841F502212282590047BE7E /* Model */,
@@ -143,6 +167,7 @@
 		C841F505212282940047BE7E /* Asset */ = {
 			isa = PBXGroup;
 			children = (
+				3E5FB034212FD8F2005F5150 /* Images */,
 				C83E9A94211BF75700BA6038 /* Assets.xcassets */,
 				C83E9A96211BF75700BA6038 /* LaunchScreen.storyboard */,
 				C83E9A99211BF75700BA6038 /* Info.plist */,
@@ -220,6 +245,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C83E9A98211BF75700BA6038 /* LaunchScreen.storyboard in Resources */,
+				3E5FB036212FD913005F5150 /* mostLogo.png in Resources */,
 				3E3FAD80212AFE95000582CA /* GoogleService-Info.plist in Resources */,
 				C83E9A95211BF75700BA6038 /* Assets.xcassets in Resources */,
 				C83E9A90211BF75600BA6038 /* Main.storyboard in Resources */,
@@ -238,12 +264,14 @@
 				"${PODS_ROOT}/Target Support Files/Pods-BluetoothTest/Pods-BluetoothTest-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Charts/Charts.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleUtilities/GoogleUtilities.framework",
+				"${BUILT_PRODUCTS_DIR}/leveldb-library/leveldb.framework",
 				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Charts.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleUtilities.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/leveldb.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,7 +307,9 @@
 				C8553A5F211C12B2000E2CE7 /* GraphViewController.swift in Sources */,
 				C8553A61211C12BC000E2CE7 /* DeviceViewController.swift in Sources */,
 				C841F509212283610047BE7E /* DeviceScanButton.swift in Sources */,
+				3E659E51212FE80D00299542 /* SensorValues.swift in Sources */,
 				3E8D00BE212B1E0E0074FC82 /* BluetoothUUID.swift in Sources */,
+				3E659E4F212FE7F400299542 /* DeviceInfo.swift in Sources */,
 				C8553A63211C1C81000E2CE7 /* BluetoothSerial.swift in Sources */,
 				C841F50F2122B0210047BE7E /* MBProgressHUD.m in Sources */,
 				C8553A65211C1F06000E2CE7 /* DeviceCell.swift in Sources */,

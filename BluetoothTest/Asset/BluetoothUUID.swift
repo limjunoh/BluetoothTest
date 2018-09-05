@@ -15,4 +15,7 @@ class BluetoothUUID {
     
     let BLE_Temperature_Service_CBUUID = CBUUID(string: "0x1809")
     let BLE_Temperature_Measurement_Characteristic_CBUUID = CBUUID(string: "0x2A1C")
+    
+    let valueType:[CBUUID:String] = [CBUUID(string: "0xFFE0") : "ohm",
+                                     CBUUID(string: "0x1809") : "cel"]
 }
