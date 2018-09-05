@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 import CoreBluetooth
 
 // 터미널 컨트롤러
@@ -47,6 +48,14 @@ class TerminalViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         serial.delegate = self
+    }
+    
+    func scrollTextViewToBottom() {
+        if terminal.text.count > 0 {
+            let location = terminal.text.count - 1
+            let bottom = NSMakeRange(location, 1)
+            terminal.scrollRangeToVisible(bottom)
+        }
     }
 
     // 옵저버가 post한 것을 받으면 이 함수가 실행됨
@@ -107,23 +116,20 @@ extension TerminalViewController: BluetoothSerialDelegate {
         }
     }
     
-//    func serialDidReceiveData(_ data: Data) {
-//        let formattedData = data.hexEncodedString(options: .upperCase)
-//        terminal.text = terminal.text.appending("[" + date.string(from: Date()) + "] temperature : " + formattedData + "\n")
-//    }
-    
     func serialDidReceiveBytes(_ bytes: [UInt8]) {
         // UInt8 Bytes [],[],[],[],[] 5개 read됨.
         // 그 중 1~4번째 인덱스에 있는 정보가 온도정보이므로 부동소수점 방식으로 온도 캘리브레이션
+        let dateString = date.string(from: Date())
         let rawData = Array(bytes[1...4].reversed())
         var tempData: UInt32 = 0
         let data = NSData(bytes: rawData, length: 4)
         data.getBytes(&tempData, length: 4)
         tempData = UInt32(bigEndian: tempData)
         let mantissa = tempData & 0x00FFFFFF
-        let exponent = -3   // 보류...
+        let exponent = -1   // 보류...
         let actualTemp = Double(mantissa) * pow(10, Double(exponent))
-        terminal.text = terminal.text.appending("[" + date.string(from: Date()) + "] temperature : \(actualTemp)" + "\n")
+        terminal.text = terminal.text.appending("[" + dateString + "] temperature : \(actualTemp)" + "\n")
+        scrollTextViewToBottom()
     }
 }
 

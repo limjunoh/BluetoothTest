@@ -137,7 +137,7 @@
                                     <constraint firstAttribute="width" constant="76" id="3ko-cU-Xq5"/>
                                     <constraint firstAttribute="height" constant="30" id="Vbn-Tc-6m4"/>
                                 </constraints>
-                                <state key="normal" title="Sava"/>
+                                <state key="normal" title="Save"/>
                                 <connections>
                                     <action selector="saveAction:" destination="x1j-KU-Nxv" eventType="touchUpInside" id="RDK-fq-qSf"/>
                                 </connections>

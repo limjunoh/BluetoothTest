@@ -9,22 +9,31 @@
 import UIKit
 import Charts
 import CoreBluetooth
+import CoreData
 import Firebase
 
 // 그래프 컨트롤러
 class GraphViewController: UIViewController {
 
+    let UPLOAD_VALUE_NUMBER = 100
+    
     @IBOutlet weak var lineChartView: LineChartView!
     @IBOutlet weak var disconnectButton: UIButton!
     @IBOutlet weak var deviceName: UITextField!
     @IBOutlet weak var saveButton: UIButton!
     @IBOutlet weak var fileNameTextField: UITextField!
     
-    let UPLOAD_VALUE_NUMBER = 100
+    var currentThermometerObject: ThermometerMO?
+    
+    lazy var list: [ValueMO]? = {
+        return self.currentThermometerObject?.values?.array as? [ValueMO]
+    }()
+    
     //line chart의 y value array
     var Yvalue = (0..<100).map{(i)-> Double in
         return Double(0)
     }
+    
     var isConnected: Bool = false {
         didSet {
             if isConnected == true {
@@ -42,17 +51,14 @@ class GraphViewController: UIViewController {
                 saveButton.setTitle("Stop", for: .normal)
             }else{
                 saveButton.setTitle("Save", for: .normal)
-                countValues = 0
             }
         }
     }
-    var buffer:[Double] = []
-    var countValues:Int = 0
+    
     var ref: DatabaseReference!
     var valueRef: DatabaseReference!
     let date = DateFormatter()
     let timeToStartSaving = DateFormatter()
-    var count:UInt = 0
     var deviceServiceUUID:CBUUID!
     var bluetoothUUID = BluetoothUUID()
     var filename = "unknown"
@@ -92,6 +98,40 @@ class GraphViewController: UIViewController {
         // 옵저버 제거
     }
     
+    func thermometerSave(fileName: String, deviceName: String, date: String) -> ThermometerMO? {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        
+        let object = NSEntityDescription.insertNewObject(forEntityName: "Thermometer", into: context) as! ThermometerMO
+        object.filename = fileName
+        object.date = date
+        object.devicename = deviceName
+
+        do {
+            try context.save()
+            return object
+        } catch {
+            context.rollback()
+            return nil
+        }
+    }
+    
+    func valueSave(regDate: Date, value: Double) {
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        let valueObject = NSEntityDescription.insertNewObject(forEntityName: "Values", into: context) as! ValueMO
+        valueObject.regdate = regDate
+        valueObject.value = value
+        currentThermometerObject?.addToValues(valueObject)
+        
+        do {
+            try context.save()
+            list?.append(valueObject)
+        } catch {
+            context.rollback()
+        }
+    }
+    
     @objc func reloadView() {
         serial.delegate = self
         if serial.isReady { // 연결 시
@@ -124,6 +164,7 @@ class GraphViewController: UIViewController {
         
         lineChartView.chartDescription?.text = "Graph"
     }
+    
     //chart 업데이트
     func updateChart(yData:Double) {
         var lineChartEntry = [ChartDataEntry]()
@@ -164,11 +205,6 @@ class GraphViewController: UIViewController {
         return temp
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
     @IBAction func clearAction(_ sender: UIButton) {
         Yvalue = (0..<100).map{(i)-> Double in
             return Double(0)
@@ -181,44 +217,67 @@ class GraphViewController: UIViewController {
         isConnected = false
     }
     
-
     @IBAction func saveAction(_ sender: UIButton) {
         if isConnected{
+            // Saving 종료 시, 로컬 DB에 있는 값들 Firebase DB로 업로드
             if isSaving{
+                DispatchQueue.global(qos: .background).async {
+                    // background 작업 수행
+                    guard let list = self.list else {
+                        return
+                    }
+                    var buffer: [Double] = []
+                    var count = 0
+                    for object in list {
+                        let value = object.value
+                        buffer.append(value)
+                        if buffer.count == self.UPLOAD_VALUE_NUMBER {
+                            let temp = self.valuesToString(buffer: buffer)
+                            self.ref.child("Sensor/\(self.filename)/value").child(String(count)).setValue([self.valueType!:temp])
+                            buffer = []
+                            count += 1
+                        }
+                    }
+                    
+                    // UI 부분 Main Queue로 돌아감.
+                    DispatchQueue.main.async {
+                        // UI 단에서 해야 할 처리.. (ex : 데이터베이스 업로드 완료 메시지 또는 푸쉬 알람 띄우기)
+                    }
+                }
                 isSaving = false
-            }else{
-                countValues = 0
-                buffer = []
-                count = 0
+            } else {
                 isSaving = true
                 
+                let saveStartTime = timeToStartSaving.string(from: Date())
                 //database 저장 시 이름 받아서 올림.
                 if self.fileNameTextField.text != nil{
                     filename = self.fileNameTextField.text!
-                }else{
+                } else {
                     filename = "unknown"
                 }
-                filename += "_" + timeToStartSaving.string(from: Date())
-                //종류에 따라 key 이름 정해줌
-                valueType = bluetoothUUID.valueType[deviceServiceUUID]
+                filename += "_" + saveStartTime
                 
-                self.ref.child("Sensor").child(filename).setValue(["Date":timeToStartSaving.string(from: Date())])
+                // 로컬 DB에 metadata 저장
+                currentThermometerObject = thermometerSave(fileName: filename, deviceName: self.deviceName.text ?? "unknown", date: saveStartTime)
+                
+                //종류에 따라 key 이름 정해줌 ( Firebase DB 에 metadata 저장 )
+                valueType = bluetoothUUID.valueType[deviceServiceUUID]
+                let info = NSDictionary(dictionary: ["DeviceName":self.deviceName.text ?? "unknown", "Date":saveStartTime])
+                self.ref.child("Sensor").child(filename).setValue(info)
                 self.ref.child("Sensor/\(filename)").child("value")
                 valueRef = Database.database().reference().child("Sensor/\(filename)/value")
             }
-        }else{
+        } else {
             let hud = MBProgressHUD.showAdded(to: view, animated: true)
             hud?.mode = .text
             hud?.labelText = "Device is not connected"
             hud?.hide(true, afterDelay: 1)
         }
-        
-        
     }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         self.fileNameTextField.endEditing(true)
     }
-    
 }
 
 
@@ -232,7 +291,7 @@ extension GraphViewController:BluetoothSerialDelegate{
     func serialDidDisconnect(_ peripheral: CBPeripheral, error: NSError?) {
         print("블루투스 연결이 끊어졌습니다")
     }
-    //??--
+    
     func serialIsReady(_ peripheral: CBPeripheral) {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadStartViewController"), object: self)
     }
@@ -242,21 +301,10 @@ extension GraphViewController:BluetoothSerialDelegate{
             NotificationCenter.default.post(name: Notification.Name("reloadStartViewController"), object: self)
         }
     }
-    
-    //--??
-    func serialDidDiscoverPeripheral(_ peripheral: CBPeripheral, RSSI: NSNumber?) {
-        //        for existing in peripherals {
-        //            if existing.peripheral.identifier == peripheral.identifier { return }
-        //        }
-        //
-        //        let theRSSI = RSSI?.floatValue ?? 0.0
-        //        peripherals.append((peripheral: peripheral, RSSI: theRSSI))
-        //        peripherals.sort{ $0.RSSI < $1.RSSI }
-        //        tableView.reloadData()
-    }
+
+    func serialDidDiscoverPeripheral(_ peripheral: CBPeripheral, RSSI: NSNumber?) {}
     
     func serialDidReceiveBytes(_ bytes: [UInt8]) {
-//        print("LOG:serialDidReceiveBytes = \(bytes)")
         var convertedData:Double = 0.0
         //service uuid에 따라 데이터 변환 분류
         switch deviceServiceUUID {
@@ -273,41 +321,17 @@ extension GraphViewController:BluetoothSerialDelegate{
                 data.getBytes(&tempData, length: 4)
                 tempData = UInt32(bigEndian: tempData)
                 let mantissa = tempData & 0x00FFFFFF
-                let exponent = -3  // 보류...
+                let exponent = -1  // 보류...
                 convertedData = Double(mantissa) * pow(10, Double(exponent))
-                print(mantissa, exponent)
             
             default:
                 print("ERROR: Service UUID is not correct.")
         }
-
-
-        
         updateChart(yData: convertedData)
-        if isSaving{
-            buffer.append(convertedData)
-            countValues += 1
-            
-            print("LOG: buffer.count = \(buffer.count) ")
-            print("LOG: countValues = \(countValues) ")
+        
+        if isSaving, self.list != nil {
+            valueSave(regDate: Date(), value: convertedData)
         }
-        
-        if countValues == UPLOAD_VALUE_NUMBER {
-            //db업로드 백그라운드 쓰레드
-            DispatchQueue.global(qos: .background).async {
-                DispatchQueue.main.async {
-                    let temp = self.valuesToString(buffer: self.buffer)
-                    self.valueRef.observeSingleEvent(of: .value) { (snapshot) in
-                        self.count = snapshot.childrenCount
-                    }
-                    self.ref.child("Sensor/\(self.filename)/value").child(String(self.count)).setValue([self.valueType!:temp])
-                    self.countValues = 0
-                    self.buffer = []
-                }
-            }
-        }
-        
-        
     }
 }
 
